@@ -28,38 +28,40 @@ const item2 = new Item ({
 });
 
 const item3 = new Item ({
-  name: "Check box to delete"
+  name: "Check box to check an item off your list"
 });
 
 const defaultItems = [item1, item2, item3];
 
 
-Item.insertMany(defaultItems, (err) => {
-  if (err) {
-    console.log(err);
-  } else (
-    console.log("success, database seeded")
-  )
-})
 
 app.get("/", function(req, res) {
-
-
-  res.render("list", {listTitle: "Today", newListItems: items});
-
+  
+  Item.find({}, (err, foundItems) => {
+    if(foundItems.length === 0) {
+      Item.insertMany(defaultItems, (err) => {
+        if (err) {
+          console.log(err);
+        } else (
+          console.log("success, database seeded")
+        )
+      });
+      res.redirect("/");
+    } else {
+      res.render("list", {listTitle: "Today", newListItems: foundItems});
+    }
+  })
 });
 
 app.post("/", function(req, res){
 
-  const item = req.body.newItem;
+  const itemName = req.body.newItem;
 
-  if (req.body.list === "Work") {
-    workItems.push(item);
-    res.redirect("/work");
-  } else {
-    items.push(item);
-    res.redirect("/");
-  }
+  const item = new Item({
+    name: itemName
+  })
+  item.save();
+  res.redirect("/");
 });
 
 app.get("/work", function(req,res){
@@ -71,5 +73,5 @@ app.get("/about", function(req, res){
 });
 
 app.listen(3000, function() {
-  console.log("Server started on port 3000");
+  console.log("http://localhost:3000");
 });
