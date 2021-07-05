@@ -75,8 +75,32 @@ app.post("/delete", (req, res) => {
   res.redirect("/");
 });
 
-app.get("/work", function(req,res){
-  res.render("list", {listTitle: "Work List", newListItems: workItems});
+const listSchema = {
+  name: String, 
+  items: [itemsSchema]
+};
+
+const List = mongoose.model("List", listSchema);
+
+app.get("/:customListName", function(req,res){
+  const customListName = req.params.customListName;
+
+  List.findOne({name: customListName}, (err, foundList) => {
+    if (!err) {
+      if(!foundList) {
+        const list = new List({
+          name: customListName,
+          items: defaultItems
+        });
+        list.save();
+        res.redirect("/" + customListName);
+      } else {
+        console.log("exists");
+        res.render("list", {listTitle: foundList.name, newListItems: foundList.items})
+      }
+    }
+  });
+
 });
 
 app.get("/about", function(req, res){
